@@ -1,0 +1,389 @@
+{
+  "guides": [
+    {
+      "id": "react",
+      "title": "React (Vite) Static Site",
+      "description": "Deploy a React single-page application built with Vite as optimized static assets served from a CDN or static web server.",
+      "checklist": [
+        {
+          "id": "react-1",
+          "task": "Run a clean production build locally",
+          "description": "Run `npm ci && npm run build` from a fresh clone to confirm the build succeeds without relying on local caches or untracked files."
+        },
+        {
+          "id": "react-2",
+          "task": "Fix all TypeScript and lint errors",
+          "description": "`tsc -b` runs as part of the build script; any type error will fail the deployment pipeline."
+        },
+        {
+          "id": "react-3",
+          "task": "Prefix client env vars with VITE_",
+          "description": "Only variables prefixed with `VITE_` are exposed to client code via `import.meta.env`. Others are silently undefined."
+        },
+        {
+          "id": "react-4",
+          "task": "Configure SPA fallback routing",
+          "description": "Rewrite all unknown paths to `/index.html` so client-side routes (e.g. /dashboard) don't return 404 on refresh."
+        },
+        {
+          "id": "react-5",
+          "task": "Set the correct base path",
+          "description": "If the app is served from a sub-path, set `base` in vite.config.ts (e.g. `base: '/app/'`) so asset URLs resolve."
+        },
+        {
+          "id": "react-6",
+          "task": "Point API calls at production URLs",
+          "description": "Replace hard-coded localhost URLs with `import.meta.env.VITE_API_URL` and confirm CORS is enabled on the API for your production domain."
+        }
+      ],
+      "repoPrep": [
+        "Commit package-lock.json (or pnpm-lock.yaml / yarn.lock) so installs are deterministic.",
+        "Add `dist/`, `node_modules/`, and `.env*.local` to .gitignore.",
+        "Pin the Node.js version with an `engines` field in package.json or an `.nvmrc` file.",
+        "Commit a `.env.example` listing every required VITE_ variable with placeholder values.",
+        "Move build-only tooling (vite, typescript) to devDependencies; most platforms still install them during the build step."
+      ],
+      "envVars": {
+        "rules": [
+          "Client-side variables MUST start with `VITE_` to be bundled.",
+          "Every VITE_ variable is embedded in the public JavaScript bundle — never put secrets, private API keys, or database credentials in them.",
+          "Env vars are inlined at build time; changing a value requires a rebuild and redeploy, not just a restart.",
+          "Access values via `import.meta.env.VITE_*`, not `process.env`.",
+          "Declare types for custom variables in `src/vite-env.d.ts` via the `ImportMetaEnv` interface."
+        ],
+        "variables": [
+          {
+            "key": "VITE_API_URL",
+            "description": "Base URL of the backend API the frontend calls.",
+            "example": "https://api.example.com",
+            "required": true,
+            "secret": false
+          },
+          {
+            "key": "VITE_APP_ENV",
+            "description": "Deployment environment label used for feature flags and logging.",
+            "example": "production",
+            "required": false,
+            "secret": false
+          },
+          {
+            "key": "VITE_SENTRY_DSN",
+            "description": "Public Sentry DSN for client-side error reporting.",
+            "example": "https://abc123@o0.ingest.sentry.io/0",
+            "required": false,
+            "secret": false
+          }
+        ]
+      },
+      "buildConfig": {
+        "runtime": "Node.js 20+ (build only)",
+        "installCommand": "npm ci",
+        "buildCommand": "npm run build",
+        "startCommand": "npx vite preview --host 0.0.0.0 --port $PORT",
+        "outputDirectory": "dist",
+        "port": null,
+        "notes": [
+          "Prefer serving `dist/` from a static host or CDN; `vite preview` is only suitable for quick previews.",
+          "If containerizing, use a multi-stage Dockerfile: build with node, serve `dist/` with nginx.",
+          "Hashed asset filenames allow long cache headers on /assets/*; keep index.html at `no-cache`."
+        ]
+      },
+      "troubleshooting": [
+        {
+          "error": "Blank white page after deploy; console shows 404 for /assets/index-*.js",
+          "cause": "The `base` option in vite.config.ts doesn't match the path the app is served from.",
+          "fix": "Set `base` to the deployment sub-path (or '/' for root) and rebuild."
+        },
+        {
+          "error": "404 Not Found when refreshing a route like /dashboard",
+          "cause": "The server looks for a physical /dashboard file instead of handing routing to the SPA.",
+          "fix": "Add a rewrite rule sending all non-asset requests to /index.html (e.g. nginx `try_files $uri /index.html;`)."
+        },
+        {
+          "error": "import.meta.env.API_URL is undefined in production",
+          "cause": "The variable is missing the `VITE_` prefix, or it was set after the build ran.",
+          "fix": "Rename it to `VITE_API_URL`, set it in the platform's build environment, and trigger a fresh build."
+        },
+        {
+          "error": "error TS2307: Cannot find module or its corresponding type declarations",
+          "cause": "A dependency is missing from package.json or import path casing differs (Linux file systems are case-sensitive).",
+          "fix": "Install the missing package and save it, and match import paths to the exact file name casing."
+        },
+        {
+          "error": "Access to fetch has been blocked by CORS policy",
+          "cause": "The API doesn't allow requests from the production frontend origin.",
+          "fix": "Add the deployed frontend domain to the API's allowed CORS origins."
+        }
+      ]
+    },
+    {
+      "id": "nodejs",
+      "title": "Node.js API Server",
+      "description": "Deploy a long-running Node.js HTTP server (Express, Fastify, NestJS, etc.) as a containerized or buildpack-based web service.",
+      "checklist": [
+        {
+          "id": "nodejs-1",
+          "task": "Listen on the PORT environment variable",
+          "description": "Use `process.env.PORT` with a local fallback; platforms assign the port dynamically and route traffic to it."
+        },
+        {
+          "id": "nodejs-2",
+          "task": "Bind to 0.0.0.0",
+          "description": "Binding to `localhost`/`127.0.0.1` makes the server unreachable from outside the container."
+        },
+        {
+          "id": "nodejs-3",
+          "task": "Define a production start script",
+          "description": "Add `\"start\": \"node dist/index.js\"` (or equivalent). Don't use nodemon or ts-node in production."
+        },
+        {
+          "id": "nodejs-4",
+          "task": "Add a health check endpoint",
+          "description": "Expose `GET /health` returning 200 so the platform can verify the service is up before routing traffic."
+        },
+        {
+          "id": "nodejs-5",
+          "task": "Handle SIGTERM gracefully",
+          "description": "Close the HTTP server and database connections on SIGTERM so in-flight requests finish during redeploys."
+        },
+        {
+          "id": "nodejs-6",
+          "task": "Run database migrations as a release step",
+          "description": "Run migrations (e.g. `npx prisma migrate deploy`) before the new version starts serving, not on every app boot."
+        }
+      ],
+      "repoPrep": [
+        "Commit the lockfile and use `npm ci` for reproducible installs.",
+        "Specify the Node.js version via `engines.node` in package.json.",
+        "Ensure all runtime packages are in `dependencies`, not `devDependencies` — dev deps may be pruned in production.",
+        "Add `.env`, `node_modules/`, and build output to .gitignore; commit a `.env.example`.",
+        "For TypeScript projects, add a `build` script (`tsc -p .`) and point `start` at the compiled output.",
+        "Optionally add a Dockerfile with `NODE_ENV=production` and a non-root user."
+      ],
+      "envVars": {
+        "rules": [
+          "Never commit `.env` files; set secrets in the deployment platform's environment settings.",
+          "Read variables via `process.env` at startup and fail fast with a clear error if a required one is missing.",
+          "Set `NODE_ENV=production` to enable framework optimizations and disable verbose error output.",
+          "Don't hard-code `PORT`; the platform injects it at runtime.",
+          "Runtime env changes take effect on restart — no rebuild needed unless values are inlined at build time."
+        ],
+        "variables": [
+          {
+            "key": "PORT",
+            "description": "Port the HTTP server listens on. Usually injected by the platform.",
+            "example": "8080",
+            "required": true,
+            "secret": false
+          },
+          {
+            "key": "NODE_ENV",
+            "description": "Runtime environment mode.",
+            "example": "production",
+            "required": true,
+            "secret": false
+          },
+          {
+            "key": "DATABASE_URL",
+            "description": "Connection string for the primary database.",
+            "example": "postgresql://user:password@host:5432/dbname?sslmode=require",
+            "required": true,
+            "secret": true
+          },
+          {
+            "key": "JWT_SECRET",
+            "description": "Secret used to sign and verify authentication tokens.",
+            "example": "<random 64-char string>",
+            "required": true,
+            "secret": true
+          },
+          {
+            "key": "CORS_ORIGIN",
+            "description": "Comma-separated list of frontend origins allowed to call the API.",
+            "example": "https://app.example.com",
+            "required": false,
+            "secret": false
+          }
+        ]
+      },
+      "buildConfig": {
+        "runtime": "Node.js 20 LTS",
+        "installCommand": "npm ci",
+        "buildCommand": "npm run build",
+        "startCommand": "npm start",
+        "outputDirectory": null,
+        "port": 8080,
+        "notes": [
+          "For plain JavaScript projects with no compile step, the build command can be omitted.",
+          "Use `node --enable-source-maps dist/index.js` to get readable stack traces from compiled TypeScript.",
+          "Set memory limits explicitly if needed: `node --max-old-space-size=512 dist/index.js`."
+        ]
+      },
+      "troubleshooting": [
+        {
+          "error": "Error: listen EADDRINUSE: address already in use :::3000",
+          "cause": "The app hard-codes a port, or another process in the container already uses it.",
+          "fix": "Use `const port = Number(process.env.PORT) || 3000` and make sure only one server instance starts."
+        },
+        {
+          "error": "Deploy fails health check / 502 Bad Gateway",
+          "cause": "The server binds to localhost or a port other than $PORT, so the platform's proxy can't reach it.",
+          "fix": "Call `app.listen(port, '0.0.0.0')` and verify the health check path returns 200."
+        },
+        {
+          "error": "Error: Cannot find module 'dotenv' (or another package)",
+          "cause": "The package is listed in devDependencies, which are pruned in production installs.",
+          "fix": "Move it to `dependencies`, or remove the import in production code paths."
+        },
+        {
+          "error": "npm ERR! `npm ci` can only install packages when your package.json and package-lock.json are in sync",
+          "cause": "package.json was edited without regenerating the lockfile.",
+          "fix": "Run `npm install` locally and commit the updated package-lock.json."
+        },
+        {
+          "error": "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory",
+          "cause": "The process exceeds the container's memory limit, often during a TypeScript build.",
+          "fix": "Increase instance memory or set `NODE_OPTIONS=--max-old-space-size=<MB>` slightly below the container limit."
+        }
+      ]
+    },
+    {
+      "id": "python",
+      "title": "Python Web App (Django / Flask / FastAPI)",
+      "description": "Deploy a Python web application behind a production WSGI/ASGI server such as Gunicorn or Uvicorn.",
+      "checklist": [
+        {
+          "id": "python-1",
+          "task": "Pin dependencies in requirements.txt",
+          "description": "Run `pip freeze > requirements.txt` (or use Poetry/uv lockfiles) so the build installs exact versions."
+        },
+        {
+          "id": "python-2",
+          "task": "Use a production server",
+          "description": "Never use `flask run` or `manage.py runserver` in production. Use Gunicorn (WSGI) or Uvicorn (ASGI)."
+        },
+        {
+          "id": "python-3",
+          "task": "Bind to 0.0.0.0:$PORT",
+          "description": "Pass `--bind 0.0.0.0:$PORT` (Gunicorn) or `--host 0.0.0.0 --port $PORT` (Uvicorn)."
+        },
+        {
+          "id": "python-4",
+          "task": "Disable debug mode",
+          "description": "Set `DEBUG=False` (Django) or `debug=False` (Flask). Debug mode leaks stack traces and secrets."
+        },
+        {
+          "id": "python-5",
+          "task": "Configure allowed hosts",
+          "description": "Django: set `ALLOWED_HOSTS` to your production domain(s), otherwise every request returns 400."
+        },
+        {
+          "id": "python-6",
+          "task": "Collect static files and run migrations",
+          "description": "Django: run `python manage.py collectstatic --noinput` at build time and `migrate` as a release step."
+        }
+      ],
+      "repoPrep": [
+        "Commit `requirements.txt` (or `pyproject.toml` + lockfile) at the repo root.",
+        "Pin the Python version with `.python-version` or `runtime.txt` (e.g. `python-3.12`).",
+        "Add `gunicorn` or `uvicorn[standard]` to requirements — it's not installed by default.",
+        "Add `venv/`, `.venv/`, `__pycache__/`, `.env`, and `staticfiles/` to .gitignore.",
+        "Optionally add a `Procfile` (e.g. `web: gunicorn myproject.wsgi`) for buildpack-based platforms."
+      ],
+      "envVars": {
+        "rules": [
+          "Load configuration from `os.environ`; use `python-dotenv` only for local development.",
+          "Never commit `SECRET_KEY` or database credentials — generate a unique `SECRET_KEY` per environment.",
+          "Environment values are always strings: parse booleans explicitly (e.g. `os.environ.get('DEBUG') == 'True'`).",
+          "Set `PYTHONUNBUFFERED=1` so logs stream immediately instead of being buffered.",
+          "Use `os.environ['KEY']` for required values so the app fails fast at startup if they're missing."
+        ],
+        "variables": [
+          {
+            "key": "PORT",
+            "description": "Port the app server binds to. Usually injected by the platform.",
+            "example": "8000",
+            "required": true,
+            "secret": false
+          },
+          {
+            "key": "SECRET_KEY",
+            "description": "Cryptographic signing key for sessions and CSRF (Django/Flask).",
+            "example": "<random 50-char string>",
+            "required": true,
+            "secret": true
+          },
+          {
+            "key": "DATABASE_URL",
+            "description": "Database connection string, parsed with dj-database-url or SQLAlchemy.",
+            "example": "postgresql://user:password@host:5432/dbname",
+            "required": true,
+            "secret": true
+          },
+          {
+            "key": "DEBUG",
+            "description": "Enables debug mode. Must be False in production.",
+            "example": "False",
+            "required": false,
+            "secret": false
+          },
+          {
+            "key": "ALLOWED_HOSTS",
+            "description": "Comma-separated host names the Django app may serve.",
+            "example": "app.example.com,www.example.com",
+            "required": false,
+            "secret": false
+          },
+          {
+            "key": "PYTHONUNBUFFERED",
+            "description": "Disables output buffering so logs appear in real time.",
+            "example": "1",
+            "required": false,
+            "secret": false
+          }
+        ]
+      },
+      "buildConfig": {
+        "runtime": "Python 3.12",
+        "installCommand": "pip install -r requirements.txt",
+        "buildCommand": "python manage.py collectstatic --noinput",
+        "startCommand": "gunicorn myproject.wsgi:application --bind 0.0.0.0:$PORT --workers 3",
+        "outputDirectory": null,
+        "port": 8000,
+        "notes": [
+          "Flask: `gunicorn app:app --bind 0.0.0.0:$PORT`.",
+          "FastAPI: `uvicorn main:app --host 0.0.0.0 --port $PORT` or `gunicorn main:app -k uvicorn.workers.UvicornWorker`.",
+          "A common Gunicorn worker count is (2 × CPU cores) + 1; lower it on small instances to avoid OOM kills.",
+          "Serve Django static files with WhiteNoise or a CDN — Gunicorn doesn't serve them."
+        ]
+      },
+      "troubleshooting": [
+        {
+          "error": "ModuleNotFoundError: No module named 'gunicorn'",
+          "cause": "The production server isn't listed in requirements.txt.",
+          "fix": "Add `gunicorn` (or `uvicorn[standard]`) to requirements.txt and redeploy."
+        },
+        {
+          "error": "DisallowedHost: Invalid HTTP_HOST header. You may need to add 'app.example.com' to ALLOWED_HOSTS",
+          "cause": "Django rejects requests for hosts not listed in ALLOWED_HOSTS.",
+          "fix": "Set the `ALLOWED_HOSTS` env var to include your production domain and split it into a list in settings.py."
+        },
+        {
+          "error": "[CRITICAL] WORKER TIMEOUT (pid:42)",
+          "cause": "A request ran longer than Gunicorn's default 30s timeout, or the worker ran out of memory.",
+          "fix": "Optimize slow endpoints, move long work to a background queue, or raise `--timeout`; reduce `--workers` if memory-bound."
+        },
+        {
+          "error": "Static files return 404 (admin CSS missing)",
+          "cause": "`collectstatic` wasn't run, or nothing is configured to serve STATIC_ROOT.",
+          "fix": "Run `collectstatic` during the build and add WhiteNoise middleware, or serve static files from a CDN."
+        },
+        {
+          "error": "ERROR: Could not build wheels for psycopg2",
+          "cause": "psycopg2 requires PostgreSQL headers and a compiler that the build image lacks.",
+          "fix": "Use `psycopg2-binary` or `psycopg[binary]` instead, or install `libpq-dev` in the build image."
+        }
+      ]
+    }
+  ]
+}
