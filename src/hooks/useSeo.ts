@@ -9,7 +9,7 @@ interface SeoOptions {
   /** Page title; the site name is appended unless this is the home page. */
   title?: string;
   description: string;
-  /** Keep the page out of search results (auth, 404). */
+  /** Keep the page out of search results (e.g. 404). */
   noIndex?: boolean;
 }
 

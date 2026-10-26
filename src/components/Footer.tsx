@@ -51,11 +51,6 @@ export function Footer() {
                 PipeOps walkthrough
               </Link>
             </li>
-            <li>
-              <Link to="/signin" className={linkClass}>
-                Sign in
-              </Link>
-            </li>
           </ul>
         </nav>
       </div>
