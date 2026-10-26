@@ -1,13 +1,12 @@
 import { CupSoda } from 'lucide-react';
 
-// Set VITE_TIP_URL in .env (and in the PipeOps build environment) to show the button.
+// Demo fallback; set VITE_TIP_URL to point the button at a real tip page.
+const FALLBACK_TIP_URL = 'https://buymeacoffee.com';
 const rawTipUrl = import.meta.env.VITE_TIP_URL?.trim() ?? '';
 // Only allow https links so a misconfigured value can't inject a javascript: URL.
-const TIP_URL = /^https:\/\//i.test(rawTipUrl) ? rawTipUrl : null;
+const TIP_URL = /^https:\/\//i.test(rawTipUrl) ? rawTipUrl : FALLBACK_TIP_URL;
 
 export function TipButton({ fullWidth = false }: { fullWidth?: boolean }) {
-  if (!TIP_URL) return null;
-
   return (
     <a
       href={TIP_URL}
