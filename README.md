@@ -1,32 +1,41 @@
-# React + TypeScript + Vite
+# DeployReady
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+DeployReady is an interactive assistant for developers who can run an app locally and need a clear path to get it online. It covers environment variables, build and start commands, repository setup, and the errors that usually show up on the first deploy.
 
-Currently, two official plugins are available:
+The app is a React + Vite site. Guide content lives in one file, `src/data/deploymentData.json`. There is no backend.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Guides
 
-## React Compiler
+Each guide has five sections: Checklist, Repo Prep, Env Variables, Build Config, and Troubleshooting. Checklist ticks and walkthrough progress are saved in the browser.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Stack | What it covers |
+| --- | --- |
+| React (Vite) | Static site build, `VITE_` env vars, SPA routing |
+| Node.js | API server, `PORT`, start command, health checks |
+| Python | Django, Flask, or FastAPI behind Gunicorn or Uvicorn |
 
-## Expanding the Oxlint configuration
+A separate page walks through deploying a React + Vite app on [PipeOps](https://pipeops.io).
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Run locally
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Then open the URL Vite prints, usually `http://localhost:5173`.
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Start the dev server |
+| `npm run build` | Typecheck and build for production |
+| `npm run preview` | Serve the production build locally |
+| `npm run lint` | Run Oxlint |
+
+## Built by
+
+- [okekevicktur](https://github.com/okekevicktur)
+- [akanbifatimah](https://github.com/akanbifatimah)
+- [udebeulah@gmail.com](mailto:udebeulah@gmail.com)
+- [onyeokorochioma@gmail.com](mailto:onyeokorochioma@gmail.com)
+- [nunsiomi@gmail.com](mailto:nunsiomi@gmail.com)
