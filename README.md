@@ -2,6 +2,8 @@
 
 DeployReady is an interactive assistant for developers who can run an app locally and need a clear path to get it online. It covers environment variables, build and start commands, repository setup, and the errors that usually show up on the first deploy.
 
+**Live:** https://deploy-ready.abj.pipeops.app, deployed on [PipeOps](https://pipeops.io).
+
 The app is a React + Vite site. Guide content lives in one file, `src/data/deploymentData.json`. There is no backend.
 
 ## Guides
@@ -14,7 +16,19 @@ Each guide has five sections: Checklist, Repo Prep, Env Variables, Build Config,
 | Node.js | API server, `PORT`, start command, health checks |
 | Python | Django, Flask, or FastAPI behind Gunicorn or Uvicorn |
 
-A separate page walks through deploying a React + Vite app on [PipeOps](https://pipeops.io).
+A separate page walks through deploying on [PipeOps](https://pipeops.io), with a version for each stack (`/walkthrough/react`, `/walkthrough/nodejs`, `/walkthrough/python`) and screenshots taken while deploying this site. Stack-specific text lives in `src/data/walkthroughStacks.ts`. The screenshots are in `public/walkthrough/`.
+
+## Deployment
+
+This site runs on PipeOps as a **Web** project built from the `main` branch, with the **ReactJs** framework. Every push to `main` redeploys it.
+
+Set these environment variables in the PipeOps project:
+
+| Variable | Value |
+| --- | --- |
+| `VITE_SITE_URL` | `https://deploy-ready.abj.pipeops.app` (falls back to this if unset) |
+| `HOST` | `0.0.0.0` |
+| `PORT` | The port shown under Networking |
 
 ## Run locally
 

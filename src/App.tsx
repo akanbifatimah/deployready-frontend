@@ -23,6 +23,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/guide/:frameworkId" element={<GuidePage />} />
           <Route path="/walkthrough" element={<PipeOpsWalkthrough />} />
+          <Route path="/walkthrough/:frameworkId" element={<PipeOpsWalkthrough />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
