@@ -49,7 +49,7 @@ export function Header() {
             <NavLink
               key={link.label}
               to={link.to}
-              end
+              end={link.to === '/'}
               className={({ isActive: navActive }) =>
                 `relative rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-indigo-500 ${
                   isActive(link.to, navActive)
@@ -96,7 +96,7 @@ export function Header() {
               <NavLink
                 key={link.label}
                 to={link.to}
-                end
+                end={link.to === '/'}
                 className={({ isActive: navActive }) =>
                   `rounded-lg px-3 py-2.5 text-base font-medium ${
                     isActive(link.to, navActive)
