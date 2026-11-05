@@ -1,10 +1,10 @@
 import { CupSoda } from 'lucide-react';
 
-// Demo fallback; set VITE_TIP_URL to point the button at a real tip page.
-const FALLBACK_TIP_URL = 'https://buymeacoffee.com';
+// Used when VITE_TIP_URL is unset or is not an https URL.
+const FALLBACK_TIP_URL = 'https://buymeamalt.com/@pipsdeployready';
 const rawTipUrl = import.meta.env.VITE_TIP_URL?.trim() ?? '';
 // Only allow https links so a misconfigured value can't inject a javascript: URL.
-const TIP_URL = /^https:\/\//i.test(rawTipUrl) ? rawTipUrl : FALLBACK_TIP_URL;
+export const TIP_URL = /^https:\/\//i.test(rawTipUrl) ? rawTipUrl : FALLBACK_TIP_URL;
 
 export function TipButton({ fullWidth = false }: { fullWidth?: boolean }) {
   return (
@@ -17,7 +17,7 @@ export function TipButton({ fullWidth = false }: { fullWidth?: boolean }) {
       }`}
     >
       <CupSoda aria-hidden className="size-4 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110" />
-      Buy us a drink
+      Buy me a malt
       <span className="sr-only"> (opens in a new tab)</span>
     </a>
   );
