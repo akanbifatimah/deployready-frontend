@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Menu, Rocket, X } from 'lucide-react';
 import { Link, NavLink, useLocation, useMatch } from 'react-router-dom';
+import { EXTERNAL_LINKS } from '../data/externalLinks';
 import { TipButton } from './TipButton';
 
 const NAV_LINKS: { label: string; to: string }[] = [
@@ -70,8 +71,24 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="hidden md:block">
-          <TipButton />
+        <div className="hidden items-center gap-1 md:flex">
+          {EXTERNAL_LINKS.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={link.title}
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white"
+            >
+              <link.icon aria-hidden className={`size-4 ${link.iconClass}`} />
+              <span className="hidden lg:inline">{link.label}</span>
+              <span className="sr-only">{link.title} (opens in a new tab)</span>
+            </a>
+          ))}
+          <div className="ml-2">
+            <TipButton />
+          </div>
         </div>
 
         <button
@@ -107,6 +124,19 @@ export function Header() {
               >
                 {link.label}
               </NavLink>
+            ))}
+            {EXTERNAL_LINKS.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                <link.icon aria-hidden className={`size-5 ${link.iconClass}`} />
+                {link.longLabel}
+                <span className="sr-only"> (opens in a new tab)</span>
+              </a>
             ))}
           </nav>
           <div className="mt-4 border-t border-slate-200 pt-4 empty:hidden dark:border-slate-800">

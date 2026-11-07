@@ -1,6 +1,7 @@
 import { Rocket } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FRAMEWORK_THEME } from '../data/frameworkTheme';
+import { EXTERNAL_LINKS } from '../data/externalLinks';
 import { guides } from '../data/guides';
 import { TIP_URL } from './TipButton';
 
@@ -52,6 +53,14 @@ export function Footer() {
                 PipeOps walkthrough
               </Link>
             </li>
+            {EXTERNAL_LINKS.map((link) => (
+              <li key={link.href}>
+                <a href={link.href} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                  {link.longLabel}
+                  <span className="sr-only"> (opens in a new tab)</span>
+                </a>
+              </li>
+            ))}
             <li>
               <a href={TIP_URL} target="_blank" rel="noopener noreferrer" className={linkClass}>
                 Buy me a malt
