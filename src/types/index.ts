@@ -47,7 +47,3 @@ export interface FrameworkGuide {
   buildConfig: BuildConfig;
   troubleshooting: TroubleshootingItem[];
 }
-
-export interface DeploymentData {
-  guides: FrameworkGuide[];
-}
